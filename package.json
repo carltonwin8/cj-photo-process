@@ -2,6 +2,7 @@
   "name": "cj-photo-process",
   "version": "0.0.1",
   "main": "index.js",
+  "bin": "index.js",
   "license": "MIT",
   "devDependencies": {
     "jest": "^24.8.0"
