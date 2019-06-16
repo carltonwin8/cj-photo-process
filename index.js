@@ -63,10 +63,10 @@ async function processPhotos() {
 }
 
 module.exports = params => {
-  // below for using the api module directly - gui use
-  if (params && params.getFunctions) return photo;
   // below for and external cli call using the cli code in this module
   if (params && params.inquirer) inquirer = params.inquirer;
+  // below for using the api module directly - gui use
+  if (params && params.getFunctions) return photo;
   // below for testing the cli code in this module
   return { processPhotos, resetPhotoDir };
 };
