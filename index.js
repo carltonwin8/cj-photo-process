@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-const fs = require("fs");
 let inquirer = require("inquirer");
 const progress = require("progress");
 
-const photo = require("./api");
+const api = require("./api");
 
 let totalv = 0;
 let totaljpegv = 0;
@@ -19,7 +18,7 @@ const actions = [
   { name: "Reset Photo Directory", cmd: resetPhotoDir }
 ];
 
-if (require.main === module) {
+const cmd = () => {
   inquirer
     .prompt([
       {
@@ -35,10 +34,12 @@ if (require.main === module) {
         .cmd({ inquirer })
     )
     .catch(e => console.error("Photo processing failed with: ", e.message));
-}
+};
+
+if (require.main === module) cmd();
 
 function resetPhotoDir() {
-  photo.reset(process.cwd(), total, extractRaw, convertMsg, totaljpeg, jpeg);
+  api.reset(process.cwd(), total, extractRaw, convertMsg, totaljpeg, jpeg);
   console.log("reset photos dir");
 }
 
@@ -48,7 +49,7 @@ async function processPhotos() {
     const cwd = process.cwd();
     const files = await photo.getFiles(cwd, total, totaljpeg);
     const bar = new progress(":bar", { total: totalv * 2 + totaljpegv });
-    return await photo.develope(
+    return await api.develope(
       cwd,
       "1620x1080",
       val => extractRaw(val, bar),
@@ -65,8 +66,9 @@ async function processPhotos() {
 module.exports = params => {
   // below for and external cli call using the cli code in this module
   if (params && params.inquirer) inquirer = params.inquirer;
+  if (params && params.getCmd) return cmd;
   // below for using the api module directly - gui use
-  if (params && params.getFunctions) return photo;
+  if (params && params.getApi) return api;
   // below for testing the cli code in this module
   return { processPhotos, resetPhotoDir };
 };
