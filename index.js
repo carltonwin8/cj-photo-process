@@ -47,7 +47,7 @@ async function processPhotos() {
   console.log("processing photos");
   try {
     const cwd = process.cwd();
-    const files = await photo.getFiles(cwd, total, totaljpeg);
+    const files = await api.getFiles(cwd, total, totaljpeg);
     const bar = new progress(":bar", { total: totalv * 2 + totaljpegv });
     return await api.develope(
       cwd,
