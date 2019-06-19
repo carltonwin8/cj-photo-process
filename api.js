@@ -61,58 +61,52 @@ async function develope(
       console.error("Process photos failed making directories with:", e.message)
     );
   // handle raw files
-  p = p.then(() => {
-    let p1 = Promise.resolve();
-    rawFiles.forEach((file, idx) => {
-      p1 = p1.then(
-        () =>
-          new Promise(resolve => {
-            const out = execSync(`${dcraw} -e ${file}`, { cwd });
-            console.log("dcraw", out);
-            fs.renameSync(path.join(cwd, file), path.join(rawDir, file));
-            const baseName = file.split(".")[0];
-            const fileOut = baseName + ".JPG";
-            const thumb = baseName + ".thumb.jpg";
-            fs.renameSync(path.join(cwd, thumb), path.join(jpgDir, fileOut));
-            extractRaw(idx + 1);
 
-            const cmd = `${convert} "${path.join(
-              jpgDir,
-              fileOut
-            )}" -resize ${size} "${path.join(resizeDir, fileOut)}"`;
+  rawFiles.forEach((file, idx) => {
+    p = p.then(
+      () =>
+        new Promise(resolve => {
+          execSync(`${dcraw} -e ${file}`, { cwd });
+          fs.renameSync(path.join(cwd, file), path.join(rawDir, file));
+          const baseName = file.split(".")[0];
+          const fileOut = baseName + ".JPG";
+          const thumb = baseName + ".thumb.jpg";
+          fs.renameSync(path.join(cwd, thumb), path.join(jpgDir, fileOut));
+          extractRaw(idx + 1);
 
-            exec(cmd, () => {
-              convertMsg(1);
-              return resolve();
-            });
-          })
-      );
-    });
-    return p1;
+          const cmd = `${convert} "${path.join(
+            jpgDir,
+            fileOut
+          )}" -resize ${size} "${path.join(resizeDir, fileOut)}"`;
+
+          exec(cmd, () => {
+            convertMsg(1);
+            return resolve();
+          });
+        })
+    );
   });
-  // handle jpg files
-  p = p.then(() => {
-    let p1 = Promise.resolve();
-    jpgFiles.forEach((file, idx) => {
-      p1 = p1.then(
-        () =>
-          new Promise(resolve => {
-            const ori = path.join(cwd, file);
-            const mved = path.join(jpgDir, file);
-            fs.renameSync(ori, mved);
-            const cmd = `${convert} "${mved}" -resize ${size} "${path.join(
-              resizeDir,
-              file
-            )}"`;
 
-            exec(cmd, () => {
-              jpeg(1);
-              return resolve();
-            });
-          })
-      );
-    });
-    return p1;
+  // handle jpg files
+
+  jpgFiles.forEach((file, idx) => {
+    p = p.then(
+      () =>
+        new Promise(resolve => {
+          const ori = path.join(cwd, file);
+          const mved = path.join(jpgDir, file);
+          fs.renameSync(ori, mved);
+          const cmd = `${convert} "${mved}" -resize ${size} "${path.join(
+            resizeDir,
+            file
+          )}"`;
+
+          exec(cmd, () => {
+            jpeg(1);
+            return resolve();
+          });
+        })
+    );
   });
   return p;
 }
@@ -122,7 +116,7 @@ async function reset(cwd, total, extractRaw, convertMsg, totaljpeg, jpeg) {
     await fs.remove(`${cwd}/jpg`);
     await fs.remove(`${cwd}/raw`);
     await fs.remove(`${cwd}/resized`);
-    await fs.copy(`${cwd}ori/*.CR2 ${cwd}`);
+    await fs.copy(`${cwd}ori`, `${cwd}`);
     extractRaw(0);
     convertMsg(0);
     total(0);
