@@ -12,6 +12,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "fs-extra": "^8.0.1",
     "inquirer": "^6.3.1",
     "progress": "^2.0.3"
   }

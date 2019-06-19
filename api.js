@@ -1,13 +1,19 @@
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs-extra");
 const { execSync, exec } = require("child_process");
 
 const dcraw =
-  process.platform === "darwin" ? "/usr/local/bin/dcraw" : "/usr/bin/dcraw";
+  process.platform === "darwin"
+    ? "/usr/local/bin/dcraw"
+    : process.platform === "win32"
+    ? 'C:/"Program Files"/ImageMagick-7.0.8-Q16/dcraw'
+    : "/usr/local/bin/convert";
 
 const convert =
   process.platform === "darwin"
     ? "/usr/local/bin/convert"
+    : process.platform === "win32"
+    ? 'C:/"Program Files"/ImageMagick-7.0.8-Q16/magick convert'
     : "/usr/local/bin/convert";
 
 async function getFiles(cwd, total, totaljpeg) {
@@ -23,7 +29,15 @@ async function getFiles(cwd, total, totaljpeg) {
   return { rawFiles, jpgFiles };
 }
 
-function develope(cwd, size, extractRaw, convertMsg, jpeg, rawFiles, jpgFiles) {
+async function develope(
+  cwd,
+  size,
+  extractRaw,
+  convertMsg,
+  jpeg,
+  rawFiles,
+  jpgFiles
+) {
   const rawDir = path.join(cwd, "raw");
   const jpgDir = path.join(cwd, "jpg");
   const resizeDir = path.join(cwd, "resized", "size_" + size);
@@ -31,12 +45,12 @@ function develope(cwd, size, extractRaw, convertMsg, jpeg, rawFiles, jpgFiles) {
   // setup directories
   let p = Promise.resolve()
     .then(
-      () =>
-        new Promise((resolve, reject) => {
+      async () =>
+        new Promise(async (resolve, reject) => {
           try {
             if (!fs.existsSync(rawDir)) fs.mkdirSync(rawDir);
             if (!fs.existsSync(jpgDir)) fs.mkdirSync(jpgDir);
-            if (!fs.existsSync(resizeDir)) execSync(`mkdir -p ${resizeDir}`);
+            if (!fs.existsSync(resizeDir)) await fs.mkdirp(`${resizeDir}`);
             return resolve();
           } catch (e) {
             reject(e);
@@ -53,7 +67,8 @@ function develope(cwd, size, extractRaw, convertMsg, jpeg, rawFiles, jpgFiles) {
       p1 = p1.then(
         () =>
           new Promise(resolve => {
-            execSync(`${dcraw} -e ${file}`, { cwd });
+            const out = execSync(`${dcraw} -e ${file}`, { cwd });
+            console.log("dcraw", out);
             fs.renameSync(path.join(cwd, file), path.join(rawDir, file));
             const baseName = file.split(".")[0];
             const fileOut = baseName + ".JPG";
@@ -102,12 +117,12 @@ function develope(cwd, size, extractRaw, convertMsg, jpeg, rawFiles, jpgFiles) {
   return p;
 }
 
-function reset(cwd, total, extractRaw, convertMsg, totaljpeg, jpeg) {
+async function reset(cwd, total, extractRaw, convertMsg, totaljpeg, jpeg) {
   if (fs.existsSync(`${cwd}ori`)) {
-    execSync(`rm -rf ${cwd}/jpg`);
-    execSync(`rm -rf ${cwd}/raw`);
-    execSync(`rm -rf ${cwd}/resized`);
-    execSync(`cp -R  ${cwd}ori/*.CR2 ${cwd}`);
+    await fs.remove(`${cwd}/jpg`);
+    await fs.remove(`${cwd}/raw`);
+    await fs.remove(`${cwd}/resized`);
+    await fs.copy(`${cwd}ori/*.CR2 ${cwd}`);
     extractRaw(0);
     convertMsg(0);
     total(0);
