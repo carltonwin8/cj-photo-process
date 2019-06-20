@@ -60,14 +60,20 @@ async function develope(
     .catch(e =>
       console.error("Process photos failed making directories with:", e.message)
     );
-  // handle raw files
 
+  // handle raw files
   rawFiles.forEach((file, idx) => {
     p = p.then(
       () =>
         new Promise(resolve => {
           execSync(`${dcraw} -e ${file}`, { cwd });
           fs.renameSync(path.join(cwd, file), path.join(rawDir, file));
+          return resolve();
+        })
+    );
+    p = p.then(
+      () =>
+        new Promise(resolve => {
           const baseName = file.split(".")[0];
           const fileOut = baseName + ".JPG";
           const thumb = baseName + ".thumb.jpg";
@@ -88,7 +94,6 @@ async function develope(
   });
 
   // handle jpg files
-
   jpgFiles.forEach((file, idx) => {
     p = p.then(
       () =>
