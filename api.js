@@ -1,6 +1,6 @@
 const path = require("path");
 const fs = require("fs-extra");
-const { execSync, exec } = require("child_process");
+const { exec } = require("child_process");
 
 const dcraw =
   process.platform === "darwin"
@@ -66,9 +66,12 @@ async function develope(
     p = p.then(
       () =>
         new Promise(resolve => {
-          execSync(`${dcraw} -e ${file}`, { cwd });
-          fs.renameSync(path.join(cwd, file), path.join(rawDir, file));
-          return resolve();
+          const cmd = `${dcraw} -e ${file}`;
+          exec(cmd, () => {
+            extractRaw(idx + 1);
+            fs.renameSync(path.join(cwd, file), path.join(rawDir, file));
+            return resolve();
+          });
         })
     );
     p = p.then(
@@ -78,7 +81,6 @@ async function develope(
           const fileOut = baseName + ".JPG";
           const thumb = baseName + ".thumb.jpg";
           fs.renameSync(path.join(cwd, thumb), path.join(jpgDir, fileOut));
-          extractRaw(idx + 1);
 
           const cmd = `${convert} "${path.join(
             jpgDir,
