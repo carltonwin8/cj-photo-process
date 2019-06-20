@@ -39,7 +39,6 @@ const cmd = () => {
 if (require.main === module) cmd();
 
 function resetPhotoDir() {
-  console.log("reset photos dir");
   return api.reset(
     process.cwd(),
     total,
@@ -51,23 +50,31 @@ function resetPhotoDir() {
 }
 
 async function processPhotos() {
-  console.log("processing photos");
-  try {
-    const cwd = process.cwd();
-    const files = await api.getFiles(cwd, total, totaljpeg);
-    const bar = new progress(":bar", { total: totalv * 2 + totaljpegv });
-    return await api.develope(
-      cwd,
-      "1620x1080",
-      val => extractRaw(val, bar),
-      val => convertMsg(val, bar),
-      val => jpeg(val, bar),
-      files.rawFiles,
-      files.jpgFiles
-    );
-  } catch (e) {
-    console.log("photo processing failed with: ", e);
-  }
+  return Promise.resolve().then(
+    () =>
+      new Promise(async (resolve, reject) => {
+        try {
+          const cwd = process.cwd();
+          const files = await api.getFiles(cwd, total, totaljpeg);
+          const bar = new progress(":bar", { total: totalv * 2 + totaljpegv });
+          await api.develope(
+            cwd,
+            "1620x1080",
+            val => extractRaw(val, bar),
+            val => convertMsg(val, bar),
+            val => jpeg(val, bar),
+            files.rawFiles,
+            files.jpgFiles
+          );
+          return resolve();
+        } catch (e) {
+          const err = typeof e === "string" ? e : JSON.stringify(e);
+          const msg = `photo processing failed with: ${err}`;
+          console.log(msg);
+          return reject(msg);
+        }
+      })
+  );
 }
 
 module.exports = params => {

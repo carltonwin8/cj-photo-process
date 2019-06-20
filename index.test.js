@@ -6,10 +6,10 @@ const photoDir =
     : "/home/carltonj2000/dogs";
 
 jest.spyOn(process, "cwd").mockImplementation(() => photoDir);
+jest.setTimeout(15000);
 
 let photo;
 
 beforeAll(() => (photo = require("./index")()));
 test("reset", () => photo.resetPhotoDir());
-jest.setTimeout(15000);
-test.skip("process", () => photo.processPhotos());
+test("process", () => photo.processPhotos());

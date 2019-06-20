@@ -1,5 +1,5 @@
 const photo = require("./api");
 
-test("photo processing api loaded", () => {
+test("api loaded", () => {
   // console.log("photo api", photo);
 });

@@ -41,7 +41,8 @@ async function develope(
   const rawDir = path.join(cwd, "raw");
   const jpgDir = path.join(cwd, "jpg");
   const resizeDir = path.join(cwd, "resized", "size_" + size);
-
+  let fileOut;
+  console.log("develope");
   // setup directories
   let p = Promise.resolve()
     .then(
@@ -67,9 +68,13 @@ async function develope(
       () =>
         new Promise(resolve => {
           const cmd = `${dcraw} -e ${file}`;
-          exec(cmd, () => {
+          exec(cmd, { cwd }, (error, stdout, stderr) => {
             extractRaw(idx + 1);
-            fs.renameSync(path.join(cwd, file), path.join(rawDir, file));
+            fs.moveSync(path.join(cwd, file), path.join(rawDir, file));
+            const baseName = file.split(".")[0];
+            fileOut = baseName + ".JPG";
+            const thumb = baseName + ".thumb.jpg";
+            fs.moveSync(path.join(cwd, thumb), path.join(jpgDir, fileOut));
             return resolve();
           });
         })
@@ -77,11 +82,6 @@ async function develope(
     p = p.then(
       () =>
         new Promise(resolve => {
-          const baseName = file.split(".")[0];
-          const fileOut = baseName + ".JPG";
-          const thumb = baseName + ".thumb.jpg";
-          fs.renameSync(path.join(cwd, thumb), path.join(jpgDir, fileOut));
-
           const cmd = `${convert} "${path.join(
             jpgDir,
             fileOut
@@ -102,7 +102,7 @@ async function develope(
         new Promise(resolve => {
           const ori = path.join(cwd, file);
           const mved = path.join(jpgDir, file);
-          fs.renameSync(ori, mved);
+          fs.moveSync(ori, mved);
           const cmd = `${convert} "${mved}" -resize ${size} "${path.join(
             resizeDir,
             file
@@ -118,13 +118,13 @@ async function develope(
   return p;
 }
 
-async function reset(cwd, total, extractRaw, convertMsg, totaljpeg, jpeg) {
-  return new Promise(async (resolve, reject) => {
+function reset(cwd, total, extractRaw, convertMsg, totaljpeg, jpeg) {
+  return new Promise((resolve, reject) => {
     if (fs.existsSync(`${cwd}ori`)) {
-      await fs.remove(`${cwd}/jpg`);
-      await fs.remove(`${cwd}/raw`);
-      await fs.remove(`${cwd}/resized`);
-      await fs.copy(`${cwd}ori`, `${cwd}`);
+      fs.removeSync(`${cwd}/jpg`);
+      fs.removeSync(`${cwd}/raw`);
+      fs.removeSync(`${cwd}/resized`);
+      fs.copySync(`${cwd}ori`, `${cwd}`);
       extractRaw(0);
       convertMsg(0);
       total(0);
