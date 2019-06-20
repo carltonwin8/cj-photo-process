@@ -119,19 +119,24 @@ async function develope(
 }
 
 async function reset(cwd, total, extractRaw, convertMsg, totaljpeg, jpeg) {
-  if (fs.existsSync(`${cwd}ori`)) {
-    await fs.remove(`${cwd}/jpg`);
-    await fs.remove(`${cwd}/raw`);
-    await fs.remove(`${cwd}/resized`);
-    await fs.copy(`${cwd}ori`, `${cwd}`);
-    extractRaw(0);
-    convertMsg(0);
-    total(0);
-    totaljpeg(0);
-    jpeg(0);
-  } else {
-    console.error(`Failed! Missing ${cwd}ori.`);
-  }
+  return new Promise(async (resolve, reject) => {
+    if (fs.existsSync(`${cwd}ori`)) {
+      await fs.remove(`${cwd}/jpg`);
+      await fs.remove(`${cwd}/raw`);
+      await fs.remove(`${cwd}/resized`);
+      await fs.copy(`${cwd}ori`, `${cwd}`);
+      extractRaw(0);
+      convertMsg(0);
+      total(0);
+      totaljpeg(0);
+      jpeg(0);
+      resolve();
+    } else {
+      const msg = `Failed! Missing ${cwd}ori.`;
+      console.error(msg);
+      return reject(msg);
+    }
+  });
 }
 
 module.exports = {

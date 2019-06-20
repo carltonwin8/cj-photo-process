@@ -39,8 +39,15 @@ const cmd = () => {
 if (require.main === module) cmd();
 
 function resetPhotoDir() {
-  api.reset(process.cwd(), total, extractRaw, convertMsg, totaljpeg, jpeg);
   console.log("reset photos dir");
+  return api.reset(
+    process.cwd(),
+    total,
+    extractRaw,
+    convertMsg,
+    totaljpeg,
+    jpeg
+  );
 }
 
 async function processPhotos() {
